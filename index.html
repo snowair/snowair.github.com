@@ -15,6 +15,7 @@
     if (document.domain == 'localhost') {
         tail = "?tail=" + Math.floor(Math.random() * 10000000);
     }
+    var content = false;
 </script>
 <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.css">
 <link rel="stylesheet" href="assets/markdown.css">
@@ -27,15 +28,6 @@
 <script type="text/javascript" src="assets/bootstrap/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/highlight.pack.js"></script>
 <script type="text/javascript">
-window.onload = function () {
-    loadpage('main.html');
-    var a = $(window.frames['content'].document.body);
-    $('#content').html(a.html());
-    render();
-    $(window).on('resize', function () {
-        renderPtag();
-    });
-};
 function renderPre() {
     var pre = $('pre.lang');
     pre.css('background', $('pre.lang>code').css('background'));
@@ -185,19 +177,24 @@ function renderFront() {
     }
 }
 function loadpage(url) {
-    document.getElementById('ciframe').src = url + tail;
-    var setvar = setInterval(function () {
-        var a = $(window.frames['content'].document.body);
-        if (a.html().replace(/<script.*?<\/script>/mg, '')) {
-            $('#content').html(a.html());
+    $.get(url, function (data) {
+        if (data.replace(/<script.*?<\/script>/mg, '')) {
+            $('#content').html(data);
             hljs.clear();
             renderFront();
             render();
-            clearInterval(setvar);
+            $(window).on('resize', function () {
+                renderPtag();
+            });
         }
-    }, 50);
+    });
 }
+var scrollstatu = false;
 function scrollAnchors(name) {
+    if (scrollstatu == true) {
+        return false;
+    }
+    scrollstatu = true;
     var margintop = 65;
     var offsetY = -margintop + document.getElementById(name).offsetTop;
     var start = window.pageYOffset
@@ -208,6 +205,7 @@ function scrollAnchors(name) {
     var z = this;
     z.clear = function () {
         window.clearInterval(z.timer);
+        scrollstatu = false;
         z.timer = null
     };
     z.t = (new Date).getTime();
@@ -328,44 +326,13 @@ function changetheme(obj) {
             <div class="ztreecss ztreebody">
                 <ul id="catetree"></ul>
             </div>
-            <!--<div>-->
-            <!--<label for="theme">高亮主题</label>-->
-            <!--<select name="theme" id="theme" onchange="changetheme(this)">-->
-            <!--<option value="arta.css">arta.css</option>-->
-            <!--<option value="ascetic.css">ascetic.css</option>-->
-            <!--<option value="brown_paper.css">brown_paper.css</option>-->
-            <!--<option value="dark.css">dark.css</option>-->
-            <!--<option value="default.css">default.css</option>-->
-            <!--<option value="far.css">far.css</option>-->
-            <!--<option value="github.css">github.css</option>-->
-            <!--<option value="googlecode.css">googlecode.css</option>-->
-            <!--<option value="idea.css">idea.css</option>-->
-            <!--<option value="ir_black.css">ir_black.css</option>-->
-            <!--<option value="magula.css">magula.css</option>-->
-            <!--<option value="monokai.css">monokai.css</option>-->
-            <!--<option value="pojoaque.css">pojoaque.css</option>-->
-            <!--<option value="rainbow.css">rainbow.css</option>-->
-            <!--<option value="school_book.css">school_book.css</option>-->
-            <!--<option value="solarized_dark.css">solarized_dark.css</option>-->
-            <!--<option value="solarized_light.css">solarized_light.css</option>-->
-            <!--<option value="sunburst.css">sunburst.css</option>-->
-            <!--<option value="tomorrow.css">tomorrow.css</option>-->
-            <!--<option value="tomorrow-night-blue.css">tomorrow-night-blue.css</option>-->
-            <!--<option value="tomorrow-night-bright.css">tomorrow-night-bright.css</option>-->
-            <!--<option value="tomorrow-night.css">tomorrow-night.css</option>-->
-            <!--<option value="tomorrow-night-eighties.css">tomorrow-night-eighties.css</option>-->
-            <!--<option value="vs.css">vs.css</option>-->
-            <!--<option value="xcode.css">xcode.css</option>-->
-            <!--<option value="zenburn.css">zenburn.css</option>-->
-            <!--</select><br>-->
-            <!--</div>-->
             <script type="text/javascript">
                 //为ztree节点添加tooltip属性
                 function addTooltip() {
                     $('#catetree').find('a').each(function () {
                         if (!this.hasAttribute('data-original-title')) {
                             $(this).attr('data-original-title', $(this).attr('title'));
-                            $(this).tooltip({delay: { show: 700, hide: 100 },placement:'right'});
+                            $(this).tooltip({delay:{ show:700, hide:100 }, placement:'right'});
                         }
                     });
                 }
@@ -389,6 +356,7 @@ function changetheme(obj) {
         <div class="span9" style="width:820px;">
             <div id="content" class="content markdown-body"></div>
         </div>
+        <script type="text/javascript">loadpage('main.html')</script>
 
         <div class="span3 rightbody ">
             <ul id="outline" class="rightbar affix">
