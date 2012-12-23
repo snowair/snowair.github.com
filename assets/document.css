@@ -221,13 +221,14 @@ blockquote .doc-muted, .doc-success, .doc-info, .doc-error, .doc-warning {
 }
 .backtop,.backbottom{
     display: block;
-    padding: 5px 7px;
+    padding: 8px 7px;
     background: #79A804;
     border-radius: 10px 10px 0 0;
 }
 .backbottom{
     border-radius: 0 0 10px 10px;
     margin-top: -5px;
+    padding-bottom: 3px;
 }
 .blockbox {
     /*margin-left: -20px;*/
