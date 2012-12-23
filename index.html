@@ -16,6 +16,7 @@
         tail = "?tail=" + Math.floor(Math.random() * 10000000);
     }
     var content = false;
+    var isIE = false;
 </script>
 <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.css">
 <link rel="stylesheet" href="assets/markdown.css">
@@ -27,6 +28,12 @@
 <script type="text/javascript" src="assets/zTree/js/jquery.ztree.core-3.5.min.js"></script>
 <script type="text/javascript" src="assets/bootstrap/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/highlight.pack.js"></script>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<script type="text/javascript">
+    isIE = true;
+</script>
+<![endif]-->
 <script type="text/javascript">
 function renderPre() {
     var pre = $('pre.lang');
@@ -34,9 +41,6 @@ function renderPre() {
     pre.wrap('<div style="position:relative;"/>').parent('div').prepend('<i class="icon-fullscreen showcode" title="展开" onclick="showcode(this)"></i>');
 }
 function render() {
-    //语法高亮渲染
-    hljs.tabReplace = '    '; // 4 spaces
-    hljs.initHighlighting();
     //渲染pre标签
     renderPre();
     //blockquote p缩进渲染
@@ -59,48 +63,65 @@ function render() {
             $(this).addClass('table-striped table-hover')
         }
     });
-    //大纲渲染
-    var outline = $('#outline').html('');
-    var ul = false, ultag = '';
-    $('#content').find('>h1,>h2,>h3').each(function () {
-        var text = $(this).text();
-        var entext = encodeURI(text);
-        var nn = this.nodeName;
-        $(this).attr('id', entext);
-        switch (nn) {
-            case 'H1':
-                outline.append("<li class='level1'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
-                break;
-            case 'H2':
-                outline.append("<li class='level2'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
-                break;
-            case 'H3':
-                outline.append("<li class='level3'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
-        }
-    });
-    var makelist = function (outline, level, ul) {
-        outline.find('li').each(function () {
-            if (!$(this).hasClass('level' + level)) {
-                if ($(this).prev().hasClass('level' + level)) {
-                    $(this).before('---')
-                }
-                if ($(this).next().hasClass('level' + level) || $(this).next().get(0) == null) {
-                    $(this).after('###')
-                } else {
-                }
+    if (!isIE) {
+
+        //语法高亮渲染
+        hljs.tabReplace = '    '; // 4 spaces
+        hljs.initHighlighting();
+        //大纲渲染
+        var outline = $('#outline').html('');
+        var ul = false, ultag = '';
+        $('#content').find('>h1,>h2,>h3').each(function () {
+            var text = $(this).text();
+            var entext = encodeURI(text);
+            var nn = this.nodeName;
+            $(this).attr('id', entext);
+            switch (nn) {
+                case 'H1':
+                    outline.append("<li class='level1'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
+                    break;
+                case 'H2':
+                    outline.append("<li class='level2'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
+                    break;
+                case 'H3':
+                    outline.append("<li class='level3'><a onclick='return scrollAnchors(\"" + entext + "\")' href='#" + entext + "'>" + text + "</a></li>");
             }
         });
-        outline.html(outline.html().replace(/---/g, '<ul>').replace(/###/g, '</ul>'));
-        ul = ul + '>ul';
-        outline = outline.find(ul);
-        if (outline.get(0) != null) {
-            outline.each(function () {
-                makelist($(this), level + 1, ul);
+        var makelist = function (outline, level, ul) {
+            outline.find('li').each(function () {
+                if (!$(this).hasClass('level' + level)) {
+                    if ($(this).prev().hasClass('level' + level)) {
+                        $(this).before('---')
+                    }
+                    if ($(this).next().hasClass('level' + level) || $(this).next().get(0) == null) {
+                        $(this).after('###')
+                    } else {
+                    }
+                }
             });
-        }
-    };
-    makelist(outline, 1, '');
-    makelist(outline, 2, '');
+            outline.html(outline.html().replace(/---/g, '<ul>').replace(/###/g, '</ul>'));
+            ul = ul + '>ul';
+            outline = outline.find(ul);
+            if (outline.get(0) != null) {
+                outline.each(function () {
+                    makelist($(this), level + 1, ul);
+                });
+            }
+        };
+        makelist(outline, 1, '');
+        makelist(outline, 2, '');
+    } else {
+        $('.markdown-body').find('>blockquote').css({'padding':'15px 15px 0 15px'});
+        $('.markdown-body h1 + blockquote, .markdown-body h2 + blockquote, .markdown-body hr + blockquote').css({
+            'font-style'   :'normal',
+            'border-color' :'#54BD4A',
+            'background'   :'#F5FFF2',
+            'color'        :'#178B2A',
+            'margin-top'   :'0px',
+            'margin-bottom':'0px'
+        });
+        $('.markdown-body>blockquote').find('>p:last-child').css('padding-bottom', '15px');
+    }
     var st;
     $('.lang').parent('div').on({
         'mouseenter':function () {
@@ -357,19 +378,21 @@ function changetheme(obj) {
             <div id="content" class="content markdown-body"></div>
         </div>
         <script type="text/javascript">loadpage('main.html')</script>
-
         <div class="span3 rightbody ">
             <ul id="outline" class="rightbar affix">
             </ul>
-            <div class="floatarrow">
-
+            <div class="floatarrow" style="display:none;">
                 <div><a class="backtop" href="#" onclick="return scrollAnchors('content')"><i
                         class="icon-circle-arrow-up icon-white"></i></a></div>
                 <div><a class="backbottom" href="#" onclick="return scrollAnchors('bottom')"><i
                         class="icon-circle-arrow-down icon-white"></i></a></div>
             </div>
         </div>
-
+        <script type="text/javascript">
+            if (!isIE) {
+                $('.floatarrow').css('display', 'block');
+            }
+        </script>
     </div>
     <div id="codeview" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <pre class="lang"></pre>
